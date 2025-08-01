@@ -6,6 +6,7 @@ model_pipeline = None
 def hf_respond(prompt: str, model_name: str, device: str = "auto", hf_token: str = None):
     global model_pipeline
     
+    print("Thinking...")
     try:
         if hf_token:
             login(token = hf_token)

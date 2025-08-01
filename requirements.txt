@@ -6,3 +6,4 @@ TTS
 sounddevice
 numpy
 pydub
+accelerate

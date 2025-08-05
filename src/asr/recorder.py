@@ -16,7 +16,7 @@ def save_wav(audio_data, sample_rate=16000):
     return temp_file.name
 
 
-def record(sample_rate = 16000, frame_duration = 20, padding_duration = 0.2, vad_aggressiveness = 3):
+def record(sample_rate = 16000, frame_duration = 20, padding_duration = 0.4, vad_aggressiveness = 1):
     vad = webrtcvad.Vad(vad_aggressiveness)
     frame_size = int(sample_rate * frame_duration / 1000)
     num_padding_frames = int(padding_duration * 1000 / frame_duration)

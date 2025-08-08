@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Chat Interface</title>
+</head>
+<body>
+  <h1>Voice Chat Interface</h1>
+  <button id="recordBtn">Start Recording</button>
+  <p id="status">Idle</p>
+  <audio id="player" controls></audio>
+
+  <script>
+    const recordBtn = document.getElementById('recordBtn');
+    const status = document.getElementById('status');
+    const player = document.getElementById('player');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    recordBtn.addEventListener('click', async () => {
+      if (!mediaRecorder) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          status.textContent = 'Uploading...';
+          const blob = new Blob(audioChunks, { type: 'audio/wav' });
+          audioChunks = [];
+
+          const form = new FormData();
+          form.append('audio_file', blob, 'speech.wav');
+          const res = await fetch('/chat/', { method: 'POST', body: form });
+
+          if (!res.ok) {
+            status.textContent = 'Error from server';
+            return;
+          }
+
+          const audioBlob = await res.blob();
+          player.src = URL.createObjectURL(audioBlob);
+          status.textContent = 'Done';
+        };
+      }
+
+      if (mediaRecorder.state === 'inactive') {
+        mediaRecorder.start();
+        recordBtn.textContent = 'Stop Recording';
+        status.textContent = 'Recording...';
+      } else {
+        mediaRecorder.stop();
+        recordBtn.textContent = 'Start Recording';
+      }
+    });
+  </script>
+</body>
+</html>

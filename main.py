@@ -14,6 +14,12 @@ if LLM_PROVIDER == "openai":
         
         os.system(f"afplay {audio}") 
         os.remove(audio)
+
+    """
+    -- BEWARE --
+    HUGGINGFACE'S LLAMA 3.2 - 3B DOES NOT HAVE 5 TURN MEMORY
+    adn it roleplays with itself which is pretty weird
+    """
 elif LLM_PROVIDER == "huggingface":
     while True:
         audio = generate_tts(hf_respond(get_prompt(ASR_MODEL, ASR_DEVICE), HF_MODEL_NAME, HF_DEVICE, HF_TOKEN), TTS_MODEL, TTS_SPEAKER)

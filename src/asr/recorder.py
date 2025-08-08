@@ -3,82 +3,67 @@ import numpy as np
 import tempfile
 import wave
 import webrtcvad
-from collections import deque
 import time
+from collections import deque
 
-def save_wav(audio_data, sample_rate=16000):
+def save_wav(audio_data: np.ndarray, sample_rate: int = 16000):
     temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-    with wave.open(temp_file.name, 'wb') as wavf:
-        wavf.setnchannels(1)
-        wavf.setsampwidth(2)
-        wavf.setframerate(sample_rate)
-        wavf.writeframes(audio_data.tobytes())
+    with wave.open(temp_file.name, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sample_rate)
+        wf.writeframes(audio_data.tobytes())
     return temp_file.name
 
-def record(
-    sample_rate = 16000,
-    frame_duration = 30,
-    padding_duration = 0.5,
-    vad_aggressiveness = 2,
-    max_wait_for_speech = 3.0,
-):
+def record(sample_rate: int = 16000, frame_duration: int = 30, padding_duration: float = 1.0, vad_aggressiveness: int = 3, max_wait_for_speech: float = 2.0,):
     vad = webrtcvad.Vad(vad_aggressiveness)
     frame_size = int(sample_rate * frame_duration / 1000)
-    num_padding_frames = int(padding_duration * 1000 / frame_duration)
 
-    ring_buffer = deque(maxlen=num_padding_frames)
-    voiced_frames = []
-    all_frames = []
-
-    triggered = False
     start_time = time.time()
+    last_speech_time = None
+    speech_started = False
 
-    print("Listening... (speak to record, stop talking to end)")
+    all_frames: list[bytes] = []
+    silence_buffer = deque(maxlen=int(padding_duration * 1000 / frame_duration))
 
     def callback(indata, frames, time_info, status):
-        nonlocal triggered, ring_buffer, voiced_frames, all_frames
+        nonlocal speech_started, last_speech_time
 
         frame = bytes(indata)
-        is_speech = vad.is_speech(frame, sample_rate)
-
         all_frames.append(frame)
 
-        current_time = time.time()
+        now = time.time()
+        is_speech = vad.is_speech(frame, sample_rate)
 
-        if not triggered:
-            ring_buffer.append((frame, is_speech))
-            num_voiced = len([f for f, speech in ring_buffer if speech])
-            if num_voiced > 0.9 * ring_buffer.maxlen:
-                triggered = True
-                print("Speech detected, recording...", flush=True)
-                voiced_frames.extend(f for f, _ in ring_buffer)
-                ring_buffer.clear()
-            elif current_time - start_time > max_wait_for_speech:
-                print("No speech detected within time limit, stopping...", flush=True)
-                sd.stop()
+        if not speech_started:
+            if is_speech:
+                speech_started = True
+                last_speech_time = now
+                print("Speech detected.", flush=True)
+            else:
+                if now - start_time > max_wait_for_speech:
+                    print("No speech in time, stopping.", flush=True)
+                    raise sd.CallbackStop()
         else:
-            voiced_frames.append(frame)
-            ring_buffer.append((frame, is_speech))
-            num_unvoiced = len([f for f, speech in ring_buffer if not speech])
-            if num_unvoiced > 0.9 * ring_buffer.maxlen:
-                print("Silence detected, stopping...", flush=True)
-                sd.stop()
+            if is_speech:
+                last_speech_time = now
+                silence_buffer.clear()
+            else:
+                silence_buffer.append(frame)
+                if now - (last_speech_time or now) > padding_duration:
+                    print("Silence end, stopping recording.", flush=True)
+                    raise sd.CallbackStop()
 
-    with sd.RawInputStream(
-        samplerate=sample_rate,
-        blocksize=frame_size,
-        dtype='int16',
-        channels=1,
-        callback=callback
-    ):
-        buffer_time = int((max_wait_for_speech + silence_timeout + 2) * 1000)
-        sd.sleep(buffer_time)
+    with sd.RawInputStream(samplerate = sample_rate, blocksize = frame_size, dtype = 'int16', channels = 1, callback = callback) as stream:
+        print("Recording...")
+        while stream.active:
+            time.sleep(0.01)
 
-    if not voiced_frames:
-        print("No speech detected.")
-        audio_data = np.frombuffer(b''.join(all_frames), dtype='int16')
-    else:
-        audio_data = np.frombuffer(b''.join(voiced_frames), dtype='int16')
+    if not speech_started:
+        # no speech ever detected
+        return None
 
-    print("Finished recording")
-    return save_wav(audio_data, sample_rate)
+    audio = np.frombuffer(b''.join(all_frames), dtype=np.int16)
+    path = save_wav(audio, sample_rate)
+    print(f"Saved recording to {path}", flush=True)
+    return path

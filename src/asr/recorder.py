@@ -16,12 +16,11 @@ def save_wav(audio_data, sample_rate=16000):
     return temp_file.name
 
 def record(
-    sample_rate=16000,
-    frame_duration=30,
-    padding_duration=0.5,
-    vad_aggressiveness=2,
-    max_wait_for_speech=3.0,
-    silence_timeout=0.5
+    sample_rate = 16000,
+    frame_duration = 30,
+    padding_duration = 0.5,
+    vad_aggressiveness = 2,
+    max_wait_for_speech = 3.0,
 ):
     vad = webrtcvad.Vad(vad_aggressiveness)
     frame_size = int(sample_rate * frame_duration / 1000)

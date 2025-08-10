@@ -24,7 +24,7 @@
 
     .chat-panel{position:relative;background:linear-gradient(180deg,#ffffff 0%,#eef3fb 100%);border-radius:16px;border:1px solid rgba(0,0,0,0.06);box-shadow:0 0 60px rgba(0,123,255,0.32), 0 0 120px rgba(0,123,255,0.14), 0 16px 48px rgba(0,123,255,0.12);width:700px;margin:2rem auto;padding:2rem;display:flex;flex-direction:column;gap:1.5rem}
     h1{margin:0;text-align:center;font-weight:800;letter-spacing:-0.01em}
-    button{background:#0069ff;color:#fff;border:none;border-radius:8px;padding:.75rem 1.5rem;font-size:1rem;cursor:pointer;transition:background .3s}
+    button{background:#0069ff;color:#fff;border:none;border-radius:8px;padding:.75rem 1.5rem;font-size:1rem;cursor:pointer;transition:background .3s;display:inline-flex;align-items:center;justify-content:center;gap:.5rem}
     button:hover:enabled{background:#0051cc}
     button:disabled{background:#aaa}
     .toggle-btn{background:#0069ff}
@@ -36,15 +36,22 @@
     .player-controls input[type=range]{flex:1;height:6px;background:#ddd;border-radius:3px;appearance:none}
     .player-controls input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:#0069ff;cursor:pointer;margin-top:-4px}
     .time{width:40px;text-align:center;font-size:.9rem;color:#555}
-    #status{height:1.2rem;text-align:center;font-style:italic;color:#555}
+
+    .status-wrap{display:flex;align-items:center;justify-content:center;gap:.5rem;min-height:36px}
     .spinner{display:none;width:32px;height:32px;border:4px solid #e0e0e0;border-top:4px solid #0069ff;border-radius:50%;animation:spin 1s linear infinite}
+    #status{min-height:1.2rem;text-align:center;font-style:italic;color:#555}
     @keyframes spin{to{transform:rotate(360deg)}}
+
     .history-panel{background:#f9fafb;border-radius:16px;box-shadow:0 12px 36px rgba(0,123,255,.2);width:100%;height:0;max-height:300px;margin:1rem auto 0;overflow:hidden;padding:0 1rem;display:block;flex-direction:column;gap:1rem;transition:height .3s,padding .3s}.history-panel.open{height:300px;padding:1rem;overflow-y:auto}
 
-    .chat-panel::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.10;background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAYAAAB1j6GIAAAACXBIWXMAAAsSAAALEgHS3X78AAABFElEQVRYhe3WwQ2CMBCF4a8eOXD2yB9oCwq0pQqU0l0qgWm2Qd0hQ8b0Qy8J4m3m4j6cB0n8rGQ2m5YtI0P3sU0JQv3g1r7nF2P1m5xw3o7k8TZ8o4mH0g3mD6M1+g0W0J7WLeq3m5y7yH8nWw5zqv3y0lq7W6g3bQ0b2iPkvw1h2x2mQxk7kXb3i7mXk7cA6h5m5qTqLw3q9F1QeQbJ3O0h4r2Kx5+o0lqf3mTg0r2gXw+q2kJ0jNQvYx8MBY2C8mM1mQn9y8+zjQy9H0m1z5x4+oC8Yg3AAAAAElFTkSuQmCC');background-size:200px 200px;background-repeat:repeat;mix-blend-mode:normal;}
+    .chat-panel::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.10;background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAYAAAB1j6GIAAAACXBIWXMAAAsSAAALEgHS3X78AAABFElEQVRYhe3WwQ2CMBCF4a8eOXD2yB9oCwq0pQqU0l0qgWm2Qd0hQ8b0Qy8J4m3m4j6cB0n8rGQ2m5YtI0P3sU0JQv3g1r7nF2P1m5xw3o7k8TZ8o4mH0g3mD6M1+g0W0J7WLeq3m5y7yH8nWw5zqv3y0lq7W6g3bQ0b2iPkvw1h2x2mQxk7kXb3i7mXk7cA6h5m5qTqLw3q9F1QeQbJ3O0h4r2Kx5+o0lqf3mTg0r2gXw+q2kJ0jNQvYx8MBY2C8mM1mQn9y8+zjQy9H0m1z5x4+oC8Yg3AAAAAElFTkSuQmCC');background-size:200px 200px;background-repeat:repeat;mix-blend-mode:normal}
+
+    .bg-toggle{position:fixed;top:10px;right:10px;z-index:9999;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);padding:6px 10px;border-radius:999px;font-size:.8rem;cursor:pointer;backdrop-filter:blur(6px)}
+    body.bg-off #lineCanvas,body.bg-off #floatContainer,body.bg-off #cursor{display:none!important}
   </style>
 </head>
 <body>
+  <button id="bgToggle" class="bg-toggle" title="Toggle background">BG</button>
   <canvas id="lineCanvas"></canvas>
   <div class="cursor-dot" id="cursor"></div>
   <div id="floatContainer"></div>
@@ -59,89 +66,27 @@
 
     <div class="player" id="playerArea"><div class="player-controls"><button id="playBtn">▶️</button><input type="range" id="seek" value="0" min="0" max="0" step="0.001"><div class="time" id="timer">0:00</div></div></div>
 
-    <div id="status"></div><div class="spinner" id="spinner"></div><div class="history-panel" id="history"></div>
+    <div class="status-wrap"><div id="status"></div><div class="spinner" id="spinner"></div></div>
+    <div class="history-panel" id="history"></div>
   </div>
 
 <script>
-const cursor=document.getElementById('cursor');
-window.addEventListener('mousemove', e => {
-  const {clientX:x, clientY:y} = e;
-  cursor.style.left = x + 'px';
-  cursor.style.top  = y + 'px';
-})
+const statusEl=document.getElementById('status');
+const spinner=document.getElementById('spinner');
+function setStatus(text, spinning=true){ statusEl.textContent=text||''; spinner.style.display = spinning ? 'inline-block' : 'none'; }
+function clearStatus(){ setStatus('', false); }
 
-const floatContainer=document.getElementById('floatContainer');const FLOATS=480;const floats=[];
-function rand(min,max){return Math.random()*(max-min)+min}
-function spawnFloats(){floatContainer.innerHTML='';floats.length=0;for(let i=0;i<FLOATS;i++){const f=document.createElement('div');f.className='float';const size=3+Math.random()*6;f.style.width=f.style.height=size+'px';const x=Math.random()*window.innerWidth;const y=Math.random()*window.innerHeight;f.dataset.x=x;f.dataset.y=y;f.style.left=x+'px';f.style.top=y+'px';const tx=rand(-120,120);const ty=rand(-120,120);f.style.setProperty('--tx',tx);f.style.setProperty('--ty',ty);const dur=8+Math.random()*22;f.style.setProperty('--dur',dur+'s');
-    const pulse=1.4+Math.random()*1.6;f.style.setProperty('--pulsedur',pulse+'s');
-    f.style.animationDelay=`-${Math.random()*dur}s, -${Math.random()*pulse}s`;floatContainer.appendChild(f);floats.push(f);} }
+document.getElementById('bgToggle').addEventListener('click',()=>{ const off=document.body.classList.toggle('bg-off'); document.getElementById('bgToggle').textContent = off ? 'BG Off' : 'BG'; });
+
+const cursor=document.getElementById('cursor');
+window.addEventListener('mousemove', e => { cursor.style.left = e.clientX + 'px'; cursor.style.top  = e.clientY + 'px'; });
+
+const floatContainer=document.getElementById('floatContainer');const FLOATS=480;const floats=[];function rand(min,max){return Math.random()*(max-min)+min}
+function spawnFloats(){floatContainer.innerHTML='';floats.length=0;for(let i=0;i<FLOATS;i++){const f=document.createElement('div');f.className='float';const size=3+Math.random()*6;f.style.width=f.style.height=size+'px';const x=Math.random()*window.innerWidth;const y=Math.random()*window.innerHeight;f.dataset.x=x;f.dataset.y=y;f.style.left=x+'px';f.style.top=y+'px';const tx=rand(-120,120);const ty=rand(-120,120);f.style.setProperty('--tx',tx);f.style.setProperty('--ty',ty);const dur=8+Math.random()*22;f.style.setProperty('--dur',dur+'s');const pulse=1.4+Math.random()*1.6;f.style.setProperty('--pulsedur',pulse+'s');f.style.animationDelay=`-${Math.random()*dur}s, -${Math.random()*pulse}s`;floatContainer.appendChild(f);floats.push(f);} }
 spawnFloats();window.addEventListener('resize',spawnFloats);
 
 const canvas=document.getElementById('lineCanvas');const ctx=canvas.getContext('2d');function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}resizeCanvas();window.addEventListener('resize',resizeCanvas);
-function drawLines(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.lineWidth=1;ctx.lineCap='round';
-  const t=Date.now();
-  const cx=parseFloat(cursor.style.left)||-1000;
-  const cy=parseFloat(cursor.style.top)||-1000;
-  const pos=floats.map(f=>{const r=f.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};});
-
-  const PERIOD_CURSOR=3600;
-  const PERIOD_DOTS=4200;
-  const DUTY_CURSOR=0.30;
-  const DUTY_DOTS=0.30;
-
-  const CELL=120;
-  const COLS=Math.ceil(canvas.width/CELL), ROWS=Math.ceil(canvas.height/CELL);
-  const grid=Array.from({length:COLS*ROWS},()=>[]);
-  for(let i=0;i<pos.length;i++){const {x,y}=pos[i];const c=Math.max(0,Math.min(COLS-1,Math.floor(x/CELL)));const r=Math.max(0,Math.min(ROWS-1,Math.floor(y/CELL)));grid[r*COLS+c].push(i);}  
-
-  let linesDrawn=0;const MAX_LINES=700;
-
-  for(let i=0;i<pos.length && linesDrawn<MAX_LINES;i++){
-    const {x,y}=pos[i];
-    const dC=Math.hypot(cx-x,cy-y);
-    if(dC<170){
-      const base=Math.max(0,1-dC/170)*0.75;
-      const flick=Math.sin((t/PERIOD_CURSOR)+i*0.7);
-      const gate=(flick>(1-2*DUTY_CURSOR))?1:0;
-      const alpha=base*gate; if(alpha>0.02){
-        ctx.strokeStyle='rgba(0,123,255,1)';ctx.globalAlpha=alpha;
-        ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(cx,cy);ctx.stroke();
-        linesDrawn++;}
-    }
-  }
-
-  for(let i=0;i<pos.length && linesDrawn<MAX_LINES;i++){
-    const {x,y}=pos[i];
-    const c=Math.max(0,Math.min(COLS-1,Math.floor(x/CELL)));
-    const r=Math.max(0,Math.min(ROWS-1,Math.floor(y/CELL)));
-    for(let rr=r-1;rr<=r+1;rr++){
-      if(rr<0||rr>=ROWS) continue;
-      for(let cc=c-1;cc<=c+1;cc++){
-        if(cc<0||cc>=COLS) continue;
-        const bucket=grid[rr*COLS+cc];
-        for(const j of bucket){ if(j<=i) continue;
-          const x2=pos[j].x,y2=pos[j].y; const d=Math.hypot(x-x2,y-y2);
-          if(d<100){
-            const base=Math.max(0,0.95-d/100)*0.6;
-            const flick=Math.sin((t/PERIOD_DOTS)+i*0.53+j*0.31);
-            const gate=(flick>(1-2*DUTY_DOTS))?1:0;
-            const alpha=base*gate; if(alpha>0.02){
-              ctx.strokeStyle='rgba(0,123,255,1)';ctx.globalAlpha=alpha;
-              ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.stroke();
-              linesDrawn++; if(linesDrawn>=MAX_LINES) break;}
-          }
-        }
-        if(linesDrawn>=MAX_LINES) break;
-      }
-      if(linesDrawn>=MAX_LINES) break;
-    }
-  }
-  ctx.globalAlpha=1; requestAnimationFrame(drawLines);
-}
-
-drawLines();
+function drawLines(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.lineWidth=1;ctx.lineCap='round';const t=Date.now();const cx=parseFloat(cursor.style.left)||-1000;const cy=parseFloat(cursor.style.top)||-1000;const pos=floats.map(f=>{const r=f.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};});const PERIOD_CURSOR=3600,PERIOD_DOTS=4200,DUTY_CURSOR=0.30,DUTY_DOTS=0.30;const CELL=120;const COLS=Math.ceil(canvas.width/CELL),ROWS=Math.ceil(canvas.height/CELL);const grid=Array.from({length:COLS*ROWS},()=>[]);for(let i=0;i<pos.length;i++){const {x,y}=pos[i];const c=Math.max(0,Math.min(COLS-1,Math.floor(x/CELL)));const r=Math.max(0,Math.min(ROWS-1,Math.floor(y/CELL)));grid[r*COLS+c].push(i);}let linesDrawn=0;const MAX_LINES=700;for(let i=0;i<pos.length && linesDrawn<MAX_LINES;i++){const {x,y}=pos[i];const dC=Math.hypot(cx-x,cy-y);if(dC<170){const base=Math.max(0,1-dC/170)*0.75;const flick=Math.sin((t/PERIOD_CURSOR)+i*0.7);const gate=(flick>(1-2*DUTY_CURSOR))?1:0;const alpha=base*gate;if(alpha>0.02){ctx.strokeStyle='rgba(0,123,255,1)';ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(cx,cy);ctx.stroke();linesDrawn++;}}}for(let i=0;i<pos.length && linesDrawn<MAX_LINES;i++){const {x,y}=pos[i];const c=Math.max(0,Math.min(COLS-1,Math.floor(x/CELL)));const r=Math.max(0,Math.min(ROWS-1,Math.floor(y/CELL)));for(let rr=r-1;rr<=r+1;rr++){if(rr<0||rr>=ROWS) continue;for(let cc=c-1;cc<=c+1;cc++){if(cc<0||cc>=COLS) continue;const bucket=grid[rr*COLS+cc];for(const j of bucket){if(j<=i) continue;const x2=pos[j].x,y2=pos[j].y;const d=Math.hypot(x-x2,y-y2);if(d<100){const base=Math.max(0,0.95-d/100)*0.6;const flick=Math.sin((t/PERIOD_DOTS)+i*0.53+j*0.31);const gate=(flick>(1-2*DUTY_DOTS))?1:0;const alpha=base*gate;if(alpha>0.02){ctx.strokeStyle='rgba(0,123,255,1)';ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.stroke();linesDrawn++;if(linesDrawn>=MAX_LINES) break;}}}if(linesDrawn>=MAX_LINES) break;}if(linesDrawn>=MAX_LINES) break;}}ctx.globalAlpha=1;requestAnimationFrame(drawLines);}drawLines();
 
 window.addEventListener('mousemove',e=>{const{clientX:cx,clientY:cy}=e;floats.forEach(fp=>{const baseX=parseFloat(fp.dataset.x),baseY=parseFloat(fp.dataset.y);const dx=cx-baseX,dy=cy-baseY;const dist=Math.hypot(dx,dy);if(dist<200){const factor=0.35*(1-dist/200);fp.style.left=baseX+dx*factor+'px';fp.style.top=baseY+dy*factor+'px';}else{fp.style.left=baseX+'px';fp.style.top=baseY+'px';}});});
 
@@ -151,8 +96,6 @@ const youArea=document.getElementById('youArea');
 const aiArea=document.getElementById('aiArea');
 const youText=document.getElementById('youText');
 const aiText=document.getElementById('aiText');
-const statusEl=document.getElementById('status');
-const spinner=document.getElementById('spinner');
 const playBtn=document.getElementById('playBtn');
 const seek=document.getElementById('seek');
 const timer=document.getElementById('timer');
@@ -162,32 +105,72 @@ const historyEl=document.getElementById('history');
 let mediaRecorder,audioChunks=[],rafId;
 
 recordBtn.addEventListener('click',async()=>{
-  if(!mediaRecorder){const stream=await navigator.mediaDevices.getUserMedia({audio:true});mediaRecorder=new MediaRecorder(stream);
+  if(!mediaRecorder){
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream);
     mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
     mediaRecorder.onstop=async()=>{
-      youArea.style.display='flex';aiArea.style.display='flex';spinner.style.display='block';recordBtn.disabled=true;
-      const blob=new Blob(audioChunks,{type:'audio/wav'});audioChunks=[];
-      const fd=new FormData();fd.append('audio_file',blob,'rec.wav');statusEl.textContent='Transcribing...';
-      try{const res=await fetch('/chat/',{method:'POST',body:fd});if(!res.ok)throw 0;const data=await res.json();statusEl.textContent='';
-        youText.textContent=data.transcript;aiText.textContent=data.response;
+      youArea.style.display='flex';
+      aiArea.style.display='flex';
+      setStatus('Uploading and thinking...');
+      recordBtn.disabled=true;
+
+      const blob=new Blob(audioChunks,{type:'audio/wav'});
+      audioChunks=[];
+      const fd=new FormData();
+      fd.append('audio_file',blob,'rec.wav');
+
+      try{
+        const res = await fetch('/chat/', { method:'POST', body: fd });
+
+        if(!res.ok) throw 0;
+
+        setStatus('Downloading…');
+
+        const data = await res.json();
+
+        setStatus('Loading audio…');
+
+
+        youText.textContent=data.transcript;
+        aiText.textContent=data.response;
         [`<strong>You:</strong> ${data.transcript}`,`<strong>AI:</strong> ${data.response}`].forEach(h=>{const d=document.createElement('div');d.innerHTML=h;historyEl.appendChild(d);});
-        const b=Uint8Array.from(atob(data.audio),c=>c.charCodeAt(0));player.src=URL.createObjectURL(new Blob([b],{type:'audio/wav'}));
-        spinner.style.display='none';recordBtn.disabled=false;player.play();playBtn.textContent='⏸️';rafId=requestAnimationFrame(syncSlider);
-        document.getElementById('playerArea').style.display='flex';}
-      catch{statusEl.textContent='Server error';spinner.style.display='none';recordBtn.disabled=false;}
+
+        const b=Uint8Array.from(atob(data.audio),c=>c.charCodeAt(0));
+        player.src=URL.createObjectURL(new Blob([b],{type:'audio/wav'}));
+
+        recordBtn.disabled=false;
+        clearStatus();
+        document.getElementById('playerArea').style.display='flex';
+        await player.play();
+        setStatus('Playing…', false);
+        playBtn.textContent='⏸️';
+        rafId=requestAnimationFrame(syncSlider);
+      }
+      catch{
+        setStatus('Server error', false);
+        recordBtn.disabled=false;
+      }
     };
   }
-  if(mediaRecorder.state==='inactive'){audioChunks=[];mediaRecorder.start();recordBtn.textContent='Stop Recording';statusEl.textContent='Recording...';}
-  else{mediaRecorder.stop();recordBtn.textContent='Start Recording';}
+  if(mediaRecorder.state==='inactive'){
+    audioChunks=[];
+    mediaRecorder.start();
+    recordBtn.textContent='Stop Recording';
+    setStatus('Recording…', false);
+  } else {
+    mediaRecorder.stop();
+    recordBtn.textContent='Start Recording';
+  }
 });
 
 toggleBtn.addEventListener('click',()=>{const open=historyEl.classList.toggle('open');toggleBtn.textContent=open?'Hide History':'Show History';if(open)historyEl.scrollTop=historyEl.scrollHeight});
-function syncSlider(){seek.value=player.currentTime;seek.style.background=`linear-gradient(to right,#0069ff ${(seek.value/seek.max)*100}%,#ddd ${(seek.value/seek.max)*100}%)`;rafId=requestAnimationFrame(syncSlider);}  
+function syncSlider(){seek.value=player.currentTime;seek.style.background=`linear-gradient(to right,#0069ff ${((seek.value/(seek.max||1))*100)}%,#ddd ${((seek.value/(seek.max||1))*100)}%)`;rafId=requestAnimationFrame(syncSlider);}  
 playBtn.addEventListener('click',()=>{if(player.paused){player.play();playBtn.textContent='⏸️';rafId=requestAnimationFrame(syncSlider);}else{player.pause();playBtn.textContent='▶️';cancelAnimationFrame(rafId);}});
 player.addEventListener('loadedmetadata',()=>{seek.max=player.duration;seek.value=0;});
 player.addEventListener('timeupdate',()=>{const m=Math.floor(player.currentTime/60);const s=String(Math.floor(player.currentTime%60)).padStart(2,'0');timer.textContent=`${m}:${s}`});
-player.addEventListener('ended',()=>{playBtn.textContent='▶️';cancelAnimationFrame(rafId);});
-seek.addEventListener('input',()=>{player.currentTime=seek.value;seek.style.background=`linear-gradient(to right,#0069ff ${(seek.value/seek.max)*100}%,#ddd ${(seek.value/seek.max)*100}%)`;});
+player.addEventListener('ended',()=>{playBtn.textContent='▶️';cancelAnimationFrame(rafId);setStatus('Idle', false);});
+seek.addEventListener('input',()=>{player.currentTime=seek.value;seek.style.background=`linear-gradient(to right,#0069ff ${((seek.value/(seek.max||1))*100)}%,#ddd ${((seek.value/(seek.max||1))*100)}%)`;});
 </script>
 </body>
 </html>
